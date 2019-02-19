@@ -5,10 +5,7 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(lubridate)
-```
+
 
 ## 1. Loading and preprocessing the data 
 
@@ -28,7 +25,8 @@ The variables included in this dataset are:
 
 The following assumes that it is executed from the folder of the GIT repository where it is placed and that contains the activity.zip file. It reads the table and stores it within a data.frame named "activity".
 
-```{r reading}
+
+```r
 unzip("activity.zip")
 activity <- read.csv("activity.csv")
 ```
@@ -42,7 +40,8 @@ For more convenience for processing the data during the next steps, the table is
 * **Day (integer):** Weekday (1 being Sunday and 7 Saturday)
 * **Hour (numeric):** Hour of the day when the measurement was taken
 
-```{r transforming}
+
+```r
 DateTime <- strptime(paste(activity$date, sprintf("%004.0f",activity$interval)),"%Y-%m-%d %H%M")
 activityClean <- data.frame(activity$steps,
                         as.Date(format(DateTime,"%Y-%m-%d")), 
@@ -59,7 +58,8 @@ For this part, missing values in the dataset are ignored.
 
 The following code produces an histogram of the number of steps taken each day.
 
-```{r StepsByDay}
+
+```r
 library(ggplot2)
 StepsByDay <- aggregate(data=activityClean,Steps ~ Date,FUN=sum,na.action="na.omit")
 p <- ggplot(StepsByDay, aes(Steps)) 
@@ -67,12 +67,20 @@ p <- p + geom_histogram(binwidth = 2000, center = 10765, col = "white", alpha = 
 print(p)
 ```
 
+![](PA1_template_files/figure-html/StepsByDay-1.png)<!-- -->
+
 ### b. Mean and median total number of steps taken per day
 
 The following code summarises the total number of steps taken each day.
 
-```{r summary}
+
+```r
 summary(StepsByDay$Steps)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10765   10766   13294   21194
 ```
 
 Therefore, the average number of steps per day is 10766 and the Median is 10765.
@@ -85,7 +93,8 @@ For this part, missing values in the dataset are ignored.
 
 The following code produces a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
 
-```{r AverageSteps}
+
+```r
 AvgStepsByInterval <- aggregate(data=activityClean,Steps ~ Hour, FUN=mean,na.action="na.omit")
 
 p <- ggplot(data = AvgStepsByInterval, aes(x = Hour, y= Steps, group=1)) 
@@ -93,13 +102,20 @@ p <- p + geom_line()
 print(p)
 ```
 
+![](PA1_template_files/figure-html/AverageSteps-1.png)<!-- -->
+
 ### b. Interval conatining the maximum number of steps in a day
 
 The following code indentifies the 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
 
-```{r MaxNumberSteps}
+
+```r
 result <- AvgStepsByInterval[AvgStepsByInterval$Steps==max(AvgStepsByInterval$Steps),]
 paste("Interval with maximum number of steps:", result[1,1])
+```
+
+```
+## [1] "Interval with maximum number of steps: 8.58333333333333"
 ```
 
 The interval is therefore at 8h35.
@@ -112,8 +128,13 @@ In this part, we aim at impting data for the values that are missing in the init
 
 The following code counts the number of NA data for the steps in the initial dataset.
 
-```{r MissingValues}
+
+```r
 paste("The number of missing values is:", sum(is.na(activityClean$Steps)))
+```
+
+```
+## [1] "The number of missing values is: 2304"
 ```
 
 The number of missing values is therefore 2304.
@@ -128,7 +149,8 @@ The strategy adopted for imputing the data is to replace the missing values by t
 
 The following code imputes the missing values.
 
-```{r ImputedData}
+
+```r
 activityClean2 <- activityClean[!is.na(activityClean$Steps),]
 
 AvgStepsByWdayAndInterval <- aggregate(list(Steps = activityClean2$Steps), 
@@ -147,19 +169,28 @@ AvgStepsByWdayAndIntervalInputed$Steps[is.na(activityClean$Steps)] <- AvgStepsBy
 
 The following code produces an histogram of the number of steps taken each day (with imputed data).
 
-```{r AvgStepsByWdayAndIntervalInputed}
+
+```r
 StepsByDay2 <- aggregate(data=AvgStepsByWdayAndIntervalInputed,Steps ~ Date,FUN=sum,na.action="na.omit")
 p <- ggplot(StepsByDay2, aes(Steps)) 
 p <- p + geom_histogram(binwidth = 2000, center = 11015, col = "white", alpha = .8)
 print(p)
 ```
 
+![](PA1_template_files/figure-html/AvgStepsByWdayAndIntervalInputed-1.png)<!-- -->
+
 ### e. Mean and median total number of steps taken per day
 
 The following code summarises the total number of steps taken each day (with imputed data).
 
-```{r SummaryImputed}
+
+```r
 summary(StepsByDay2$Steps)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8918   11015   10821   12811   21194
 ```
 
 Therefore, the average number of steps per day is 11015 and the Median is 10821.
@@ -175,7 +206,8 @@ The Following code adds a new variable to the dataset used above:
 
 * **DayType (char):** Text describing whether measurment was performed on a weekday or a weekend 
 
-```{r AvgStepsWeekend}
+
+```r
 AvgStepsByWdayAndIntervalInputed$DayType <- "Weekend"
 AvgStepsByWdayAndIntervalInputed$DayType[which(AvgStepsByWdayAndIntervalInputed$Day %in% 2:6)] <- "Weekday"
 ```
@@ -184,7 +216,8 @@ AvgStepsByWdayAndIntervalInputed$DayType[which(AvgStepsByWdayAndIntervalInputed$
 
 The following code produces a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis) for weekends and weekdays.
 
-```{r PlotAvgStepsWeekend}
+
+```r
 AvgStepsWeekend <- aggregate(list(Steps = AvgStepsByWdayAndIntervalInputed$Steps), 
                 by = list(Hour = AvgStepsByWdayAndIntervalInputed$Hour, DayType = AvgStepsByWdayAndIntervalInputed$DayType),
                 FUN = mean,na.action="na.omit")
@@ -192,5 +225,6 @@ AvgStepsWeekend <- aggregate(list(Steps = AvgStepsByWdayAndIntervalInputed$Steps
 p <- ggplot(data = AvgStepsWeekend, aes(x = Hour, y= Steps)) + facet_grid(DayType~.)
 p <- p + geom_line()
 print(p)
-
 ```
+
+![](PA1_template_files/figure-html/PlotAvgStepsWeekend-1.png)<!-- -->
